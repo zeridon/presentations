@@ -8,3 +8,25 @@ All work here is licensed under CC-BY-SA 4.0 or any later.
 Feel free to use/Reuse/Remix but do not forget to atribute and share
 
 Full text of license available in `LICENSE` or at http://creativecommons.org/licenses/by-sa/4.0/
+
+
+How to use this
+===============
+The easiest way is to just copy `00-template` directory and start from there.
+
+When finished with editing run:
+
+`` ../bin/gen-artifacts.sh``
+
+It will produce an html presentation based on [S5](http://meyerweb.com/eric/tools/s5/) and pdf based on [LaTeX Beamer](https://bitbucket.org/rivanvx/beamer/wiki/Home)
+
+Requirements
+============
+In order for all this to work you will need the following tools:
+
+* Pandoc
+* latex-beamer
+
+Either compile or install from packages
+
+If you want to use the theme i am using (and not something else) you will need to install [/assets/beamer/beamer/themes/theme/beamerthemeAmsterdam.sty] into the proper place and rehash the config for texmf.

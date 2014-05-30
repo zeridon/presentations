@@ -1,0 +1,3 @@
+# ignore ready artifacts
+*-beamer.pdf
+*-s5.html
