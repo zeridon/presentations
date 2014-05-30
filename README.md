@@ -15,8 +15,9 @@ How to use this
 The easiest way is to just copy `00-template` directory and start from there.
 
 When finished with editing run:
-
-`` ../bin/gen-artifacts.sh``
+```
+../bin/gen-artifacts.sh file-name.pandoc
+```
 
 It will produce an html presentation based on [S5](http://meyerweb.com/eric/tools/s5/) and pdf based on [LaTeX Beamer](https://bitbucket.org/rivanvx/beamer/wiki/Home)
 
@@ -29,4 +30,4 @@ In order for all this to work you will need the following tools:
 
 Either compile or install from packages
 
-If you want to use the theme i am using (and not something else) you will need to install [/assets/beamer/beamer/themes/theme/beamerthemeAmsterdam.sty] into the proper place and rehash the config for texmf.
+If you want to use the theme i am using (and not something else) you will need to install ``assets/beamer/beamer/themes/theme/beamerthemeAmsterdam.sty`` into the proper place and rehash the config for texmf.
