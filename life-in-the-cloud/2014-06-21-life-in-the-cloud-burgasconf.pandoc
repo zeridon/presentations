@@ -1,0 +1,30 @@
+% Life in the Cloud
+% Владимир Витков &lt;vvitkov@linux-bg.org&gt;
+% 2014.06.21
+
+## Кой е пред вас
+* Владимир
+* Системен Администратор
+* Привърженик на FOSS но не и зеалот
+* Експериментатор
+* Относително приятен човек за разговор\*
+
+# Основи
+Да положим основите
+
+## Що е това Cloud и става ли за нещо
+* Хостинг - изберете си доставчик
+* Инфраструктура под наем (IaaS) - Amazon
+* Платформа под наем (Paas) - Engine Yard
+* Софтуер под наем (SaaS) - Office365
+
+## Slide title
+Fancy list
+
+* one
+	* sublevel
+		* third down
+
+# Section 2
+## Slide
+We live in the second section now

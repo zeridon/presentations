@@ -13,4 +13,13 @@ _base=${_src%%.*}
 pandoc -f markdown -t s5 -s -S -V s5-url:../assets/s5/amsterdam ${_src} -o ${_base}-s5.html
 
 # Now the pdf
-pandoc -f markdown -t beamer -s -S -V theme:Amsterdam --slide-level 2 ${_src} -o ${_base}-beamer.pdf
+pandoc \
+	--from markdown \
+	--to beamer \
+	--standalone \
+	--smart \
+	--variable theme:Amsterdam \
+	--variable fonttheme:structurebold \
+	--slide-level 2 \
+	--template ../assets/beamer/beamer-custom.template \
+	${_src} -o ${_base}-beamer.pdf
