@@ -1,16 +1,29 @@
+% Define the general class
 \documentclass[$if(fontsize)$$fontsize$,$endif$$if(handout)$handout,$endif$$if(beamer)$ignorenonframetext,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+
+% Do we want a speciffic theme
 $if(theme)$
 \usetheme{$theme$}
 $endif$
+
+% do we want a speciffic collor theme
 $if(colortheme)$
 \usecolortheme{$colortheme$}
 $endif$
+
+% do we want a speciffic font theme
 $if(fonttheme)$
 \usefonttheme{$fonttheme$}
 $endif$
+
+% math support
 \usepackage{amssymb,amsmath}
+
+% xetex / luatex support
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
+
+% a cludge to select some options
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
@@ -19,60 +32,75 @@ $endif$
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \else
+    % For pdflatex
+    \usepackage{glava}
+    \usepackage[T1,T2A]{fontenc}
     \usepackage[utf8]{inputenc}
   \fi
 \fi
-\usepackage[utf8]{inputenc}
-\usepackage[russian]{babel}
+
+% bibliography (natbib)
 $if(natbib)$
-\usepackage{natbib}
-\bibliographystyle{plainnat}
+  \usepackage{natbib}
+  \bibliographystyle{plainnat}
 $endif$
+
+% bibliograpy (biblatex)
 $if(biblatex)$
-\usepackage{biblatex}
-$if(biblio-files)$
-\bibliography{$biblio-files$}
+  \usepackage{biblatex}
+  $if(biblio-files)$
+    \bibliography{$biblio-files$}
+  $endif$
 $endif$
-$endif$
+
 $if(listings)$
-\usepackage{listings}
+  \usepackage{listings}
 $endif$
+
+% haskel formatting
 $if(lhs)$
-\lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+  \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
+
+% highlighting
 $if(highlighting-macros)$
-$highlighting-macros$
+  $highlighting-macros$
 $endif$
+
 $if(verbatim-in-note)$
-\usepackage{fancyvrb}
+  \usepackage{fancyvrb}
 $endif$
+
 $if(tables)$
-\usepackage{longtable}
-% These lines are needed to make table captions work with longtable:
-\makeatletter
-\def\fnum@table{\tablename~\thetable}
-\makeatother
+  \usepackage{longtable}
+  % These lines are needed to make table captions work with longtable:
+  \makeatletter
+  \def\fnum@table{\tablename~\thetable}
+  \makeatother
 $endif$
+
 $if(url)$
-\usepackage{url}
+  \usepackage{url}
 $endif$
+
 $if(graphics)$
-\usepackage{graphicx}
-% Redefine \includegraphics so that, unless explicit options are
-% given, the image width will not exceed the width of the page.
-% Images get their normal width if they fit onto the page, but
-% are scaled down if they would overflow the margins.
-\makeatletter
-\def\ScaleIfNeeded{%
-  \ifdim\Gin@nat@width>\linewidth
-    \linewidth
-  \else
-    \Gin@nat@width
-  \fi
-}
-\makeatother
-\let\Oldincludegraphics\includegraphics
-\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
+  \usepackage{graphicx}
+  % Redefine \includegraphics so that, unless explicit options are
+  % given, the image width will not exceed the width of the page.
+  % Images get their normal width if they fit onto the page, but
+  % are scaled down if they would overflow the margins.
+  \makeatletter
+  \def\ScaleIfNeeded{%
+    \ifdim\Gin@nat@width>\linewidth
+      \linewidth
+    \else
+      \Gin@nat@width
+    \fi
+  }
+
+  \makeatother
+  \let\Oldincludegraphics\includegraphics
+  \renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
 $endif$
 
 % Comment these out if you don't want a slide with just the
@@ -94,80 +122,87 @@ $endif$
 }
 
 $if(strikeout)$
-\usepackage[normalem]{ulem}
-% avoid problems with \sout in headers with hyperref:
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
+  \usepackage[normalem]{ulem}
+  % avoid problems with \sout in headers with hyperref:
+  \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 $endif$
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
+
 $if(numbersections)$
 $else$
-\setcounter{secnumdepth}{0}
+  \setcounter{secnumdepth}{0}
 $endif$
+
 $if(verbatim-in-note)$
-\VerbatimFootnotes % allows verbatim text in footnotes
+  \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
+
 $if(lang)$
-\usepackage[$lang$]{babel}
+  \usepackage[$lang$]{babel}
 $endif$
+
 $for(header-includes)$
-$header-includes$
+  $header-includes$
 $endfor$
 
 $if(title)$
-\title{$title$}
+  \title{$title$}
 $endif$
+
 $if(subtitle)$
-\subtitle{$subtitle$}
+  \subtitle{$subtitle$}
 $endif$
+
 $if(author)$
-\author{$for(author)$$author$$sep$ \and $endfor$}
+  \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
+
 $if(date)$
-\date{$date$}
+  \date{$date$}
 $endif$
 
 \begin{document}
 $if(title)$
-\frame{\titlepage}
+  \frame{\titlepage}
 $endif$
 
 $for(include-before)$
-$include-before$
-
+  $include-before$
 $endfor$
-$if(toc)$
-\begin{frame}
-\tableofcontents[hideallsubsections]
-\end{frame}
 
+$if(toc)$
+  \begin{frame}
+    \tableofcontents[hideallsubsections]
+  \end{frame}
 $endif$
+
 $body$
 
 $if(natbib)$
-$if(biblio-files)$
-$if(biblio-title)$
-$if(book-class)$
-\renewcommand\bibname{$biblio-title$}
-$else$
-\renewcommand\refname{$biblio-title$}
+  $if(biblio-files)$
+    $if(biblio-title)$
+      $if(book-class)$
+        \renewcommand\bibname{$biblio-title$}
+      $else$
+        \renewcommand\refname{$biblio-title$}
+      $endif$
+    $endif$
+      \begin{frame}[allowframebreaks]{$biblio-title$}
+        \bibliography{$biblio-files$}
+      \end{frame}
+  $endif$
 $endif$
-$endif$
-\begin{frame}[allowframebreaks]{$biblio-title$}
-\bibliography{$biblio-files$}
-\end{frame}
 
-$endif$
-$endif$
 $if(biblatex)$
-\begin{frame}[allowframebreaks]{$biblio-title$}
-\printbibliography[heading=none]
-\end{frame}
-
+  \begin{frame}[allowframebreaks]{$biblio-title$}
+    \printbibliography[heading=none]
+  \end{frame}
 $endif$
-$for(include-after)$
-$include-after$
 
+$for(include-after)$
+  $include-after$
 $endfor$
 \end{document}

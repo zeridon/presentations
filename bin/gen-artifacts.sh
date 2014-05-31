@@ -8,9 +8,20 @@
 
 _src=$1
 _base=${_src%%.*}
+_t=$( readlink -f ${_src} )
+_dir=$(cd ${_t%/*} && pwd -P )
+_scriptdir=$(cd ${0%/*} && pwd -P )
+
+mkdir -p ${_dir}/out
 
 # Gen html
-pandoc -f markdown -t s5 -s -S -V s5-url:../assets/s5/amsterdam ${_src} -o ${_base}-s5.html
+pandoc \
+	--from markdown \
+	--to s5 \
+	--standalone \
+	--smart \
+	--variable s5-url:${_scriptdir}/../assets/s5/amsterdam \
+	${_src} -o ${_dir}/out/${_base}-s5.html
 
 # Now the pdf
 pandoc \
@@ -18,8 +29,10 @@ pandoc \
 	--to beamer \
 	--standalone \
 	--smart \
+	--template ${_scriptdir}/../assets/beamer/beamer-custom.template \
 	--variable theme:Amsterdam \
-	--variable fonttheme:structurebold \
+	--variable fonttheme:professionalfonts \
+	--variable lang:bulgarian \
 	--slide-level 2 \
-	--template ../assets/beamer/beamer-custom.template \
-	${_src} -o ${_base}-beamer.pdf
+	--latex-engine=pdflatex \
+	${_src} -o ${_dir}/out/${_base}-beamer.pdf
