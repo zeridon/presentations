@@ -12,7 +12,6 @@ _t=$( readlink -f ${_src} )
 _dir=$(cd ${_t%/*} && pwd -P )
 _scriptdir=$(cd ${0%/*} && pwd -P )
 
-mkdir -p ${_dir}/out
 
 # Gen html
 pandoc \
@@ -21,7 +20,7 @@ pandoc \
 	--standalone \
 	--smart \
 	--variable s5-url:${_scriptdir}/../assets/s5/amsterdam \
-	${_src} -o ${_dir}/out/${_base}-s5.html
+	${_src} -o ${_dir}/${_base}-s5.html
 
 # Now the pdf
 pandoc \
@@ -35,4 +34,4 @@ pandoc \
 	--variable lang:bulgarian \
 	--slide-level 2 \
 	--latex-engine=pdflatex \
-	${_src} -o ${_dir}/out/${_base}-beamer.pdf
+	${_src} -o ${_dir}/${_base}-beamer.pdf

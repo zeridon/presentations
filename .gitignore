@@ -1,5 +1,6 @@
 # ignore artifacts
-out
+*-beamer.bdf
+*-s5.html
 
 # ignore error logs
 .log
