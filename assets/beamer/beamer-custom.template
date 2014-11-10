@@ -39,6 +39,11 @@ $endif$
   \fi
 \fi
 
+% disable captions
+\usepackage{caption}
+\DeclareCaptionFormat{cust}{}
+\captionsetup{format=cust}
+
 % bibliography (natbib)
 $if(natbib)$
   \usepackage{natbib}
