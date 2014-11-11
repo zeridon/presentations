@@ -125,7 +125,12 @@ $if(graphics)$
 }
 \makeatother
 \let\Oldincludegraphics\includegraphics
-\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}
+\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
+
+% disable captions
+\usepackage{caption}
+\DeclareCaptionFormat{cust}{}
+\captionsetup{format=cust}
 $endif$
 
 % Comment these out if you don't want a slide with just the
