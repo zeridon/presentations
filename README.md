@@ -14,12 +14,19 @@ How to use this
 ===============
 The easiest way is to just copy `00-template` directory and start from there.
 
+Notes can be added to slides with the construct
+```
+\note{
+some notes
+}
+```
+
 When finished with editing run:
 ```
 ../bin/gen-artifacts.sh file-name.pandoc
 ```
 
-It will produce an html presentation based on [S5](http://meyerweb.com/eric/tools/s5/) and pdf based on [LaTeX Beamer](https://bitbucket.org/rivanvx/beamer/wiki/Home)
+It will produce an html presentation based on [S5](http://meyerweb.com/eric/tools/s5/), pdf based on [LaTeX Beamer](https://bitbucket.org/rivanvx/beamer/wiki/Home) and handouts derived from the beamer slides.
 
 Requirements
 ============
@@ -27,6 +34,7 @@ In order for all this to work you will need the following tools:
 
 * Pandoc
 * latex-beamer
+* pdfjam
 
 Either compile or install from packages
 
