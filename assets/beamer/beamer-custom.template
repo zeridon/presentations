@@ -1,29 +1,44 @@
-% Define the general class
-\documentclass[$if(fontsize)$$fontsize$,$endif$$if(handout)$handout,$endif$$if(beamer)$ignorenonframetext,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+% Copyright Vladimir Vitkov https://github.com/zeridon
 
-% Do we want a speciffic theme
+% default 12pt
+\documentclass[$if(fontsize)$$fontsize$,$else$12pt,$endif$$if(handout)$handout,$endif$$if(beamer)$ignorenonframetext,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+
+% Themes and colors
 $if(theme)$
 \usetheme{$theme$}
+$else$
+\usetheme{default}
 $endif$
-
-% do we want a speciffic collor theme
 $if(colortheme)$
 \usecolortheme{$colortheme$}
+$else$
+\usetheme{default}
 $endif$
-
-% do we want a speciffic font theme
 $if(fonttheme)$
 \usefonttheme{$fonttheme$}
 $endif$
 
+% handle handouts
+$if(handout)$
+\setbeameroption{show notes}
+\setbeamertemplate{note page}[plain]
+$else$
+\setbeameroption{hide notes}
+\setbeamertemplate{note page}[plain]
+$endif$
+
+% Don't show things we don't want to see
+\beamertemplatenavigationsymbolsempty
+\hypersetup{pdfpagemode=UseNone} % don't show bookmarks on initial view
+
+% Space between paragraphs on notes page
+\addtobeamertemplate{note page}{\setlength{\parskip}{12pt}}
+
 % math support
 \usepackage{amssymb,amsmath}
 
-% xetex / luatex support
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
-
-% a cludge to select some options
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
@@ -32,80 +47,85 @@ $endif$
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \else
-    % For pdflatex
-    \usepackage{glava}
-    \usepackage[T1,T2A]{fontenc}
+%    \ifpdflatex
+%      \usepackage{glava}
+%      \usepackage[T1,T2A]{fontenc}
+%    \fi
     \usepackage[utf8]{inputenc}
   \fi
 \fi
 
-% disable captions
-\usepackage{caption}
-\DeclareCaptionFormat{cust}{}
-\captionsetup{format=cust}
-
-% bibliography (natbib)
+% bibliography
 $if(natbib)$
-  \usepackage{natbib}
-  \bibliographystyle{plainnat}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
 $endif$
-
-% bibliograpy (biblatex)
 $if(biblatex)$
-  \usepackage{biblatex}
-  $if(biblio-files)$
-    \bibliography{$biblio-files$}
-  $endif$
+\usepackage{biblatex}
+$if(biblio-files)$
+\bibliography{$biblio-files$}
+$endif$
 $endif$
 
+% lists
 $if(listings)$
-  \usepackage{listings}
+\usepackage{listings}
 $endif$
 
-% haskel formatting
+% haskel
 $if(lhs)$
-  \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+\lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
 
 % highlighting
 $if(highlighting-macros)$
-  $highlighting-macros$
+$highlighting-macros$
 $endif$
 
+% verbatim/mono
 $if(verbatim-in-note)$
-  \usepackage{fancyvrb}
+\usepackage{fancyvrb}
+$endif$
+$if(fancy-enums)$
+
+% Redefine labelwidth for lists; otherwise, the enumerate package will cause
+% markers to extend beyond the left margin.
+\makeatletter\AtBeginDocument{%
+  \renewcommand{\@listi}
+    {\setlength{\labelwidth}{4em}}
+}\makeatother
+\usepackage{enumerate}
 $endif$
 
+% tables
 $if(tables)$
-  \usepackage{longtable}
-  % These lines are needed to make table captions work with longtable:
-  \makeatletter
-  \def\fnum@table{\tablename~\thetable}
-  \makeatother
+\usepackage{ctable}
+\usepackage{float} % provides the H option for float placement
 $endif$
 
+% URL handling
 $if(url)$
-  \usepackage{url}
+\usepackage{url}
 $endif$
 
+% graphics/images
 $if(graphics)$
-  \usepackage{graphicx}
-  % Redefine \includegraphics so that, unless explicit options are
-  % given, the image width will not exceed the width of the page.
-  % Images get their normal width if they fit onto the page, but
-  % are scaled down if they would overflow the margins.
-  \makeatletter
-  \def\ScaleIfNeeded{%
-    \ifdim\Gin@nat@width>\linewidth
-      \linewidth
-    \else
-      \Gin@nat@width
-    \fi
-  }
-
-  \makeatother
-  \let\Oldincludegraphics\includegraphics
-  \renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
+\usepackage{graphicx}
+% Redefine \includegraphics so that, unless explicit options are
+% given, the image width will not exceed the width of the page.
+% Images get their normal width if they fit onto the page, but
+% are scaled down if they would overflow the margins.
+\makeatletter
+\def\ScaleIfNeeded{%
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+\let\Oldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}
 $endif$
 
 % Comment these out if you don't want a slide with just the
@@ -125,89 +145,111 @@ $endif$
   \let\subsectionname\relax
   \frame{\subsectionpage}
 }
+\AtBeginSubsubsection{
+  \let\insertsubsubsection\relax
+  \let\subsubsectionname\relax
+  \frame{\subsubsectionpage}
+}
 
+% strikeout support
 $if(strikeout)$
-  \usepackage[normalem]{ulem}
-  % avoid problems with \sout in headers with hyperref:
-  \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
+\usepackage[normalem]{ulem}
+% avoid problems with \sout in headers with hyperref:
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 $endif$
 
+% sub/super script
+$if(subscript)$
+\newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
+$endif$
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 
+% do we have numbered sections
 $if(numbersections)$
 $else$
-  \setcounter{secnumdepth}{0}
+\setcounter{secnumdepth}{0}
 $endif$
 
+% verbatim in footnotes
 $if(verbatim-in-note)$
-  \VerbatimFootnotes % allows verbatim text in footnotes
+\VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 
+% multilanguage support
 $if(lang)$
-  \usepackage[$lang$]{babel}
+\usepackage[$lang$]{babel}
 $endif$
 
+% header includes
 $for(header-includes)$
-  $header-includes$
+$header-includes$
 $endfor$
 
+% titles and stuff
 $if(title)$
-  \title{$title$}
+\title{$title$}
 $endif$
-
 $if(subtitle)$
-  \subtitle{$subtitle$}
+\subtitle{$subtitle$}
 $endif$
-
 $if(author)$
-  \author{$for(author)$$author$$sep$ \and $endfor$}
+\author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
-
 $if(date)$
-  \date{$date$}
+\date{$date$}
 $endif$
 
 \begin{document}
 $if(title)$
-  \frame{\titlepage}
+\frame{
+  \titlepage
+  % Include a note for the title slide here, because we cannot do so in the 
+  % Pandoc markdown file. If you want the title note to contain actual text, 
+  % use the titlepage-note field in the YAML header. Otherwise, we use a 
+  % non-breaking space so that it is not empty.
+  \note{$if(titlepage-note)$$titlepage-note$$else$~$endif$}
+}
 $endif$
 
+% primary includes
 $for(include-before)$
-  $include-before$
+$include-before$
 $endfor$
 
+% table of contents
 $if(toc)$
-  \begin{frame}
-    \tableofcontents[hideallsubsections]
-  \end{frame}
+\begin{frame}
+\tableofcontents[hideallsubsections]
+\end{frame}
 $endif$
 
+% main body content
 $body$
 
+% print bibliography
 $if(natbib)$
-  $if(biblio-files)$
-    $if(biblio-title)$
-      $if(book-class)$
-        \renewcommand\bibname{$biblio-title$}
-      $else$
-        \renewcommand\refname{$biblio-title$}
-      $endif$
-    $endif$
-      \begin{frame}[allowframebreaks]{$biblio-title$}
-        \bibliography{$biblio-files$}
-      \end{frame}
-  $endif$
+$if(biblio-files)$
+$if(biblio-title)$
+$if(book-class)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
 $endif$
+$endif$
+\bibliography{$biblio-files$}
 
+$endif$
+$endif$
 $if(biblatex)$
-  \begin{frame}[allowframebreaks]{$biblio-title$}
-    \printbibliography[heading=none]
-  \end{frame}
-$endif$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
 
+% final includes
+$endif$
 $for(include-after)$
-  $include-after$
+$include-after$
 $endfor$
+
+%and we are done
 \end{document}
