@@ -15,6 +15,9 @@ div#controls form {position: absolute; bottom: 0; right: 0; width: 100%;
 #currentSlide {position: absolute; width: 10%; left: 45%; bottom: 1em; z-index: 10;}
 html>body #currentSlide {position: fixed;}
 
+.slide>.figure>img {margin: auto; display: block;}
+.slide>.figure>.caption {display:none;}
+
 /*
 div#header {background: #FCC;}
 div#footer {background: #CCF;}
