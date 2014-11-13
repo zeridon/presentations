@@ -1,6 +1,12 @@
-% Presentation Title
-% Presentation Author
-% Presentation date (abuse possible)
+---
+title: Presentation Title
+subtitle: Subtitle if such exists
+author:
+ - Author Name
+date: 2014.11.11 / Location
+titlepage-note: |
+ Abstract for the paper
+...
 
 # section title
 ## Slide title
