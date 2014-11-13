@@ -1,2 +1,7 @@
 # ignore error logs
 .log
+
+# ignore artifacts
+*-s5.html
+*-beamer.pdf
+*-beamer-handouts.pdf
