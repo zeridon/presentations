@@ -42,104 +42,116 @@ $endif$
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
 \else
   \ifluatex
     \usepackage{fontspec}
     \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+    \newcommand{\euro}{€}
   \else
 %    \ifpdflatex
 %      \usepackage{glava}
-%      \usepackage[T1,T2A]{fontenc}
 %    \fi
+    \usepackage[T1,T2A]{fontenc}
     \usepackage[utf8]{inputenc}
+    $if(euro)$
+      \usepackage{eurosym}
+    $endif$
   \fi
 \fi
 
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+
 % bibliography
 $if(natbib)$
-\usepackage{natbib}
-\bibliographystyle{plainnat}
+  \usepackage{natbib}
+  \bibliographystyle{plainnat}
 $endif$
 $if(biblatex)$
-\usepackage{biblatex}
-$if(biblio-files)$
-\bibliography{$biblio-files$}
-$endif$
+  \usepackage{biblatex}
+  $if(biblio-files)$
+    \bibliography{$biblio-files$}
+  $endif$
 $endif$
 
 % lists
 $if(listings)$
-\usepackage{listings}
+  \usepackage{listings}
 $endif$
 
 % haskel
 $if(lhs)$
-\lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+  \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
 
 % highlighting
 $if(highlighting-macros)$
-$highlighting-macros$
+  $highlighting-macros$
 $endif$
 
 % verbatim/mono
 $if(verbatim-in-note)$
-\usepackage{fancyvrb}
+  \usepackage{fancyvrb}
 $endif$
-$if(fancy-enums)$
 
-% Redefine labelwidth for lists; otherwise, the enumerate package will cause
-% markers to extend beyond the left margin.
-\makeatletter\AtBeginDocument{%
-  \renewcommand{\@listi}
-    {\setlength{\labelwidth}{4em}}
-}\makeatother
-\usepackage{enumerate}
+$if(fancy-enums)$
+  % Redefine labelwidth for lists; otherwise, the enumerate package will cause
+  % markers to extend beyond the left margin.
+  \makeatletter\AtBeginDocument{%
+    \renewcommand{\@listi}
+      {\setlength{\labelwidth}{4em}}
+  }
+  \makeatother
+  \usepackage{enumerate}
 $endif$
 
 % tables
 $if(tables)$
-\usepackage{ctable}
-\usepackage{float} % provides the H option for float placement
+  \usepackage{ctable}
+  \usepackage{float} % provides the H option for float placement
 $endif$
 
 % URL handling
 $if(url)$
-\usepackage{url}
+  \usepackage{url}
 $endif$
 
 % graphics/images
 $if(graphics)$
-\usepackage{graphicx}
-% Redefine \includegraphics so that, unless explicit options are
-% given, the image width will not exceed the width of the page.
-% Images get their normal width if they fit onto the page, but
-% are scaled down if they would overflow the margins.
-\makeatletter
-\def\ScaleWidthIfNeeded{%
+  \usepackage{graphicx}
+  % Redefine \includegraphics so that, unless explicit options are
+  % given, the image width will not exceed the width of the page.
+  % Images get their normal width if they fit onto the page, but
+  % are scaled down if they would overflow the margins.
+  \makeatletter
+
+  \def\ScaleWidthIfNeeded{%
   \ifdim\Gin@nat@width>\linewidth
     \linewidth
   \else
     \Gin@nat@width
   \fi
-}
-\def\ScaleHeightIfNeeded{%
+  }
+
+  \def\ScaleHeightIfNeeded{%
   \ifdim\Gin@nat@height>0.8\textheight
     0.8\textheight
   \else
     \Gin@nat@width
   \fi
-}
-\makeatother
-\setkeys{Gin}{width=\ScaleWidthIfNeeded,height=\ScaleHeightIfNeeded,keepaspectratio}%
+  }
 
-%\let\Oldincludegraphics\includegraphics
-%\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
+  \makeatother
+  \setkeys{Gin}{width=\ScaleWidthIfNeeded,height=\ScaleHeightIfNeeded,keepaspectratio}%
 
-% disable captions
-\usepackage{caption}
-\DeclareCaptionFormat{cust}{}
-\captionsetup{format=cust}
+  % disable captions
+  \usepackage{caption}
+  \DeclareCaptionFormat{cust}{}
+  \captionsetup{format=cust}
 $endif$
 
 % Comment these out if you don't want a slide with just the
@@ -167,15 +179,16 @@ $endif$
 
 % strikeout support
 $if(strikeout)$
-\usepackage[normalem]{ulem}
-% avoid problems with \sout in headers with hyperref:
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
+  \usepackage[normalem]{ulem}
+  % avoid problems with \sout in headers with hyperref:
+  \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 $endif$
 
 % sub/super script
 $if(subscript)$
 \newcommand{\textsubscr}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 $endif$
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
@@ -183,36 +196,36 @@ $endif$
 % do we have numbered sections
 $if(numbersections)$
 $else$
-\setcounter{secnumdepth}{0}
+  \setcounter{secnumdepth}{0}
 $endif$
 
 % verbatim in footnotes
 $if(verbatim-in-note)$
-\VerbatimFootnotes % allows verbatim text in footnotes
+  \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 
 % multilanguage support
 $if(lang)$
-\usepackage[$lang$]{babel}
+  \usepackage[$lang$]{babel}
 $endif$
 
 % header includes
 $for(header-includes)$
-$header-includes$
+  $header-includes$
 $endfor$
 
 % titles and stuff
 $if(title)$
-\title{$title$}
+  \title{$title$}
 $endif$
 $if(subtitle)$
-\subtitle{$subtitle$}
+  \subtitle{$subtitle$}
 $endif$
 $if(author)$
-\author{$for(author)$$author$$sep$ \and $endfor$}
+  \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
 $if(date)$
-\date{$date$}
+  \date{$date$}
 $endif$
 
 \begin{document}
