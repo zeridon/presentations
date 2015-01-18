@@ -20,6 +20,7 @@ Notes can be added to slides with the construct
 some notes
 }
 ```
+Take care not to use underscores (or escape them) in the notes as they have special meaning for latex math mode.
 
 When finished with editing run:
 ```
@@ -39,3 +40,7 @@ In order for all this to work you will need the following tools:
 Either compile or install from packages
 
 If you want to use the theme i am using (and not something else) you will need to install ``assets/beamer/beamer/themes/theme/beamerthemeAmsterdam.sty`` into the proper place and rehash the config for texmf.
+
+HINTS:
+=====
+On Linux try ``kpsewhich --var-value=TEXMF``. This will give you a list of directories that LaTeX will look for styles and other stuff. Make the following directory structure beneath a directory you control (``~/.texmf-config`` maybe) ``tex/latex/beamer/themes/theme`` and copy your theme there.
