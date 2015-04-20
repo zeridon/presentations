@@ -1,0 +1,311 @@
+---
+title: Building LDAP Infrastructure
+subtitle: Пътешествие към сигурна и стабилна инфраструктура
+author:
+ - Владимир Витков
+date: хххх.хх.хх / Place
+titlepage-note: |
+ Една надеждна LDAP инфраструктура трябва да отговаря на множество параметри. Да е сигурна, да може да се самовъзстановява, да не е проблем ако част от нея изчезне
+
+ Ще ви разкажа пътешествието през което изминах за да направя нашата такава.
+...
+
+## Кой е пред вас
+ * Владимир
+ * Системен Администратор
+ * Привърженик на FOSS но не и зеалот
+ * Експериментатор
+ * Относително приятен човек за разговор\*
+
+# Какво е LDAP
+
+## Основи
+ * x500
+ * Информационна директория
+ * Дървовидна структура
+ * Атрибути с информация
+ * Дистрибутирана
+
+\note{
+LDAP е директорна структура наследни на x500. В началото е започнала като неща доста специализирано (съхранение на информацията за един отдел) докато накрая се е превърнала в това което е. Основната и употреба е като информационна директория с дървовидна структура. Самата структура е доста гъвкава (чрез използвани на определени схема класове. Може да бъде разширявана почти безкрайно. Най-хубавата и характеристика е че е дистрибутирана.
+}
+
+## Къде се използва
+ * Автентификация и авторизация
+ * Активна Директория
+ * Адресна книга
+ * Информация
+
+\note{
+Основни места в които се използва са предимно enterprise фирми, с основна цел автентификация и авторизация. Но не е ограничена само в това. Най-широко е разпространен в AD на MS. Други Места: адресни книги, мозила, управление на мрежи, и други.
+}
+
+## Стандартна архитектура
+ * Master
+ * Slaves
+ - Ненадеждно
+ - Тясно място
+ - Несигурно
+
+\note{
+Стандартната архитектура на LDAP решение обикновенно включва 2 LDAP сървъра (мастър и слейв). Решението работи но има и недостатъци. Основният е че ако няма мастър не можем да правим промени по директорията. Често ако няма слейв нямаме и директория.
+}
+
+# The Plan
+
+## What we have
+ * 1 master
+ * 11 slaves
+ * 100 clients
+ * no security (besides ACL)
+
+\note{
+В момента имаме ситуация при която имаме единичен мастър и множество слейвове основно с цел устойчивост на системата от към счупвания и до някъде разпределеност по света.
+}
+
+## Make it resilient
+ * Повече от един мастър
+ * Поне по един в Дейта Център/Зона
+ * Повече от един слейв във DC/AZ
+ * Round Robin DNS
+ * Репликация
+ * Бързо обновяване
+ * Бекъпи
+
+\note{
+Това състояние е неприемливо и ние целим да го подобрим. За целта ще преправим цялата схема за да е по надеждна и и сигурна. Ще подобрим репликацията, броят мастъри и други условности.
+}
+
+## Make it secure
+ * TLS
+ * TLS Replication
+ * TLS Consumers
+ * Verification
+ * Firewall it
+
+\note{
+След като вече имаме устойчива системе е време и да я подсигурим. За целта ще изменим конфигурацията да използва TLS.
+}
+
+# The playground
+
+## AWS
+ * Multi region
+ * Multi AZ
+ * Security Groups
+ * Single EBS
+ * Snapshots
+
+## Environment
+ * 1 Master
+ * 11 Slaves
+ * 3 Regions
+ * 6 AZs
+ * 100 consumers, apache, OS, pureftpd
+
+# The Game plan
+
+## Merge
+ * Merge as much of the infra as possible
+ * KISS
+ * DON'T repeat yourself
+ * Move to Multimaster
+ * Move to TLS replication
+ * Move consumers
+
+\note{
+Планираме следното:
+ * Да се консолидира инфраструктурата максимално, но да не се жертва сигурност и надеждност.
+ * Всичко да е колкото се може по просто и надеждно
+ * Не се повтаряйте. Нещо което го има но не стига се дописва за да работи във всички ситуации.
+
+От гледна точка на сигурност:
+ * Преместване към множество мастъри
+ * Преместване на репликацията и клиентите към TLS
+}
+
+# The execution
+
+## Merging
+ * Inventory
+ * Simplification
+ 	* pure-ftpd
+	* nslcd
+	* nscd
+
+\note{
+apache, pure-ftpd-ldap, nscd, nslcd, ldapsearch/add/modify, phpldapadmin, ad-hoc scripts
+}
+
+## No repeating
+ * Inventory
+ * mod_authnz_ldap
+ 	* Damn that's picky
+	* Oh well we need it
+ * nscd/nslcd
+ 	* Why both
+	* Keep local users
+
+\note{
+Учудващо mod\_authnz\_ldap за апаче е доста избирателен и вокален когато нещо не му хареса. Основните проблеми ще споменем после. След оглед на цялата система и взимайки под внимание клиенти и сървъри се установи че имаме дублиране на ресурси (nscd + libnss-ldap и nslcd) няма резон да се поддържат две отделни системи изпълняваще една и съща роля. Установи се че също така pure-ftpd така и никога не е стигало до фазата да използва LDAP автентификация.
+}
+
+## KISS
+ * Inventory
+ * nsc(l)d/pam
+ 	* Ditch one
+	* Keep the local users
+	* Timeouts
+	* Recovery
+
+\note{
+Не използвайте различен софтуер което прави едно нещо, мислете за ситуация при която няма LDAP, не забравяйте за безкрайните таймаути (по добре да фейлнем от колкото да висим). Задължително е също така да си оставите възможност за достъп ако изчезне цялата директория
+}
+
+## Move to Multimaster
+ * Повече от един основен сървър (3+)
+ * Автоматична конфигурация
+ * contextCSN
+ * Monitoring
+ * Защо първо това?
+
+\note{
+Multimaster репликацията позволява админситрация от отделни отдели, по лесно възстановяване на инфраструктурата и като цяло възможност за по бърза работа. Много важно е да се изпробват всички варианти на работа и да се опишат възможните сценарии за пропадане. Не забравяйте мониторинга (дали са синхронизирани). Защо първо много мастъри - за да имаме лесна възможност за реконфигурация на цялата система и възможност за отделяне на някой от сегментите.
+Щ
+
+## Single Master
+    overlay syncprov
+    syncprov-checkpoint 1000 60
+    syncprov-sessionlog 1000
+    
+    index   entryCSN					eq
+    index   entryUUID					eq
+    
+    checkpoint      1024 5
+
+\note{
+В OpenLDAP всички допълнителни функционалности се конфигурират посредством слоеве (overlay). Демонстрираното е напълно достатъчно един сървър да е мастър. Слейвоете на този мастър реално изпълняват нормални операции за търсене с които да копират определена информация.
+}
+
+## Slave
+    syncrepl rid=011
+    	provider=ldap://ldap-mm-1:389
+    	type=refreshOnly
+    	interval=00:00:15:00
+    	searchbase="dc=example,dc=com"
+    	filter="(objectClass=*)"
+    	binddn="cn=ldapsync,ou=UA,dc=example,dc=com"
+
+\note{
+Пример за слейв конфигурация. Има и още параметри. Забелязва се неефективност при репликирането. В случая на всеки 15 мин слейвът пита мастъра му какво се е променило. Имаме бавно разпространение на промените.
+}
+
+## Multimaster
+    ServerID 011
+    syncrepl rid=011
+    	provider=ldap://ldap-mm-1:389
+    	searchbase="dc=example,dc=com"
+    	filter="(objectClass=*)"
+    	binddn="cn=ldapsync,ou=UA,dc=example,dc=com"
+    syncrepl rid=021
+    	provider=ldap://ldap-mm-2:389
+    	searchbase="dc=example,dc=com"
+    	filter="(objectClass=*)"
+    	binddn="cn=ldapsync,ou=UA,dc=example,dc=com"
+    mirrormode on
+
+\note{
+Все едно конфигурираме Слейв сървър. Много важно е да имаме ServerID. Основното което прави конфигурацията MultiMaster е mirrormode on
+}
+
+## NO TLS Replication
+     syncrepl rid=011
+    	provider=ldap://ldap-mm-1:389
+    	searchbase="dc=example,dc=com"
+    	filter="(objectClass=*)"
+    	binddn="cn=ldapsync,ou=UA,dc=example,dc=com"
+
+\note{
+Няма никаква разлика с обикновен слейв
+}
+
+## WITH TLS Replication
+    syncrepl rid=011
+    	provider=ldap://ldap-mm-1:389
+    	searchbase="dc=example,dc=com"
+    	filter="(objectClass=*)"
+    	binddn="cn=ldapsync,ou=UA,dc=example,dc=com"
+    	starttls=yes
+    	tls_cacert=/etc/ssl/certs/cacert.pem
+    	tls_cert=/etc/ssl/certs/ldap-cl-1_slapd_cert.pem
+    	tls_key=/etc/ssl/private/ldap-cl-1_slapd_key.pem
+
+\note{
+Просто е необходимо да се добавят правилните сертификати
+}
+
+## Shit it does not work
+ * Why
+ * How the TLS terminates
+ * Why it still does not work???
+ * Aaaahhh the certificates
+
+\note{
+OpenLDAP е леко избирателен когато става дума за сертификати. Не забравяйте че и на мастъра трябва да има сертификат, не забравяйте за верификацията. Най-лесният вариант е да си направите собствено CA и да си издадете правилните сертификати. Ако нямате контрол над клиентите ще е необходимо да си закупите такива от някой доставчик.
+}
+
+## TLS Consumers - Debug tools
+ * ldapsearch/add/modify/delete
+ * VIM
+ * id/getent
+ * tcpdump/wireshark
+
+\note{
+ldap-utils са безценни. стандартните инструменти на системата са важни
+}
+
+## TLS Consumers - OS
+ * /etc/nsswitch
+ 	* passwd:         compat ldap
+ * /etc/pam.d
+ 	* account  pam_ldap.so minimum_uid=1000
+	* auth     pam_ldap.so minimum_uid=1000
+	* password pam_ldap.so minimum_uid=1000
+	* session  pam_ldap.so minimum_uid=1000
+
+\note{
+Нормална стандарнтна система. Просто е добавена ldap директорията като източник на информация.
+}
+
+## NO TLS Consumers - Apache
+ <code>
+
+## TLS Consumers - Debug tools
+ <Debug tools>
+ * What we can't really test
+
+## TLS Consumers - OS
+ * Benefits
+ * Cons
+
+## TLS Consumers - Apache
+ * Is this going to hit the fan
+ * YES indeed YES
+ * WHY?
+ * Who thought of this - and why i don't want to see him
+
+# Does it work
+
+## Истории от живота
+ * Учудващо да
+ * Не беше толкова трудно
+ * Мисленето е фактор
+ * Тестовата среда е фактор
+ * А как е производителността?
+ 	* много добра
+
+## Истории от живота (2)
+ * А как да го тествам
+ * А рискове
+ * А наблюдение
+ * Ползи
