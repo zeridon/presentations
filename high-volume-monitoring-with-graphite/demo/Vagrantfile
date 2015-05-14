@@ -142,12 +142,6 @@ Vagrant.configure(2) do |config|
 	  ha.vm.provision "shell", inline: $ha
 	  ha.vm.hostname = "ha"
 	  ha.vm.network "private_network", ip: "172.20.20.10"
-	  # haproxy / ingest balancer
-	  ha.vm.network "forwarded_port", guest: 10001, host: 10001
-	  ha.vm.network "forwarded_port", guest: 10101, host: 10101
-	  # haproxy / forward to web
-	  ha.vm.network "forwarded_port", guest: 8080, host: 8000
-	  # haproxy stats uri
 	  ha.vm.network "forwarded_port", guest: 25001, host: 25001
 	  ha.vm.provider :virtualbox do |vb|
 	  	vb.customize ["modifyvm", :id, "--memory", "512"]
