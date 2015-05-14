@@ -1,0 +1,11 @@
+#### Carbon Cache (instance a) ####
+check process carbon-aggregator-rewriter with pidfile /mnt/run/graphite/carbon-aggregator-rewriter.pid
+	group carbon-aggregator
+	group carbon-aggregator-rewriter
+
+	# dirs are defined elsewhere
+	depends on carbon-cache-a, carbon-cache-b
+	start program = "/opt/graphite/bin/carbon-aggregator.py --config /mnt/graphite/config/carbon.conf --instance rewriter start"
+	stop program = "/opt/graphite/bin/carbon-aggregator.py --config /mnt/graphite/config/carbon.conf --instance rewriter stop"
+
+	# checking and whatnot

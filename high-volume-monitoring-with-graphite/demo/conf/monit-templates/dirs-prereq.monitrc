@@ -1,0 +1,27 @@
+#graphite prerequisite dirs
+check directory graphite-conf-dir with path /mnt/graphite/config
+	start program = "/bin/true"
+	stop program = "/bin/true"
+
+	group graphite-directories
+
+	# now if this is missing we are dead in the water
+	if does not exist then stop
+
+check directory graphite-log-dir with path /mnt/log/graphite
+	start program = "/bin/true"
+	stop program = "/bin/true"
+
+	group graphite-directories
+
+	# now if this is missing we are dead in the water
+	if does not exist then stop
+
+check directory graphite-run-dir with path /mnt/run/graphite
+	start program = "/bin/true"
+	stop program = "/bin/true"
+
+	group graphite-directories
+
+	# now if this is missing we are dead in the water
+	if does not exist then stop

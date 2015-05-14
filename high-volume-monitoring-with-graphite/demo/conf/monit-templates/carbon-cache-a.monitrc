@@ -1,0 +1,11 @@
+#### Carbon Cache (instance a) ####
+check process carbon-cache-a with pidfile /mnt/run/graphite/carbon-cache-a.pid
+	group carbon-cache
+	group carbon-cache-a
+
+	# dirs are defined elsewhere
+	depends on graphite-conf-dir, graphite-log-dir, graphite-run-dir
+	start program = "/opt/graphite/bin/carbon-cache.py --config /mnt/graphite/config/carbon.conf --instance a start"
+	stop program = "/opt/graphite/bin/carbon-cache.py --config /mnt/graphite/config/carbon.conf --instance a stop"
+
+	# checking and whatnot

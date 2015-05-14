@@ -1,0 +1,11 @@
+#### Carbon Cache (instance a) ####
+check process carbon-relay-top with pidfile /mnt/run/graphite/carbon-relay-top.pid
+	group carbon-relay
+	group carbon-relay-top
+
+	# dirs are defined elsewhere
+	depends on carbon-relay-mid
+	start program = "/opt/graphite/bin/carbon-relay.py --config /mnt/graphite/config/carbon.conf --instance top start"
+	stop program = "/opt/graphite/bin/carbon-relay.py --config /mnt/graphite/config/carbon.conf --instance top stop"
+
+	# checking and whatnot

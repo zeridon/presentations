@@ -1,0 +1,157 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$graphite = <<SCRIPT
+echo 'Provisioning ...'
+sudo sed -i 's,http://us.archive.ubuntu,http://bg.archive.ubuntu,g' /etc/apt/sources.list
+echo 'APT::Install-Recommends "false";' | sudo tee /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Recommends "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc python-pip monit python-dev libldap-dev libsasl2-dev python-cairo
+sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
+sudo pip install --ignore-installed --quiet django django-tagging twisted pytz python-memcached txAMQP python-ldap pyparsing whisper carbon graphite-web 
+sudo apt-get clean
+sudo mkdir -p /mnt/graphite/{config,storage}
+sudo mkdir -p /mnt/{run,log}/graphite
+
+if id graphite >/dev/null 2>&1; then
+	# User exists.
+	# XXX: We should also check the group, later on chown depends on it.
+	:;
+else
+	sudo groupadd graphite
+	if [ $? -ne 0 ]; then
+		log "Failed to create group graphite"
+		exit 1
+	fi
+
+	sudo useradd -s /usr/sbin/nologin -M -c "Graphite User" -d /mnt/graphite -g graphite graphite
+	if [ $? -ne 0 ]; then
+		log "Failed to create user graphite"
+		exit 1
+	fi
+fi
+
+# patch graphite to make aggregator work again
+# https://github.com/graphite-project/carbon/pull/351
+cat > /tmp/graphite.patch <<EOF
+--- /opt/graphite/lib/carbon/service.py	2015-04-01 12:37:05.000000000 +0000
++++ service.py	2015-04-01 12:53:23.740780053 +0000
+@@ -24,7 +24,7 @@
+ from carbon.log import carbonLogObserver
+ from carbon.exceptions import CarbonConfigException
+ 
+-state.events = state
++state.events = events
+ 
+ 
+ class CarbonRootService(MultiService):
+EOF
+
+sudo cp -rvf /vagrant/conf/* /mnt/graphite/config/
+
+sudo patch /opt/graphite/lib/carbon/service.py < /tmp/graphite.patch
+
+sudo chown -R graphite:graphite /mnt/run/graphite /mnt/log/graphite /mnt/graphite/storage
+
+sudo /etc/init.d/monit stop
+
+cat > /etc/monit/monitrc <<EOF
+  set daemon 10            # check services at 2-minute intervals
+  set logfile /var/log/monit.log
+  set idfile /var/lib/monit/id
+  set statefile /var/lib/monit/state
+  set eventqueue
+      basedir /var/lib/monit/events # set the base directory where events will be stored
+      slots 100                     # optionally limit the queue size
+ set httpd port 2812 and
+    use address localhost  # only accept connection from localhost
+    allow localhost        # allow localhost to connect to the server and
+    allow admin:monit      # require user 'admin' with password 'monit'
+include /etc/monit/conf.d/*
+EOF
+
+ln -snf /mnt/graphite/config/monit-templates/* /etc/monit/conf.d
+
+# and start graphite
+/etc/init.d/monit start
+monit start all
+
+SCRIPT
+
+$ha = <<SCRIPT
+echo 'Provisioning ...'
+sudo sed -i 's,http://us.archive.ubuntu,http://bg.archive.ubuntu,g' /etc/apt/sources.list
+echo 'APT::Install-Recommends "false";' | sudo tee /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Recommends "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc haproxy 
+sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
+sudo apt-get clean
+
+sudo cp /vagrant/conf/haproxy.cfg /etc/haproxy/haproxy.cfg
+echo 'ENABLED=1' | sudo tee /etc/default/haproxy
+sudo /etc/init.d/haproxy restart
+SCRIPT
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure(2) do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://atlas.hashicorp.com/search.
+  config.vm.box = "opscode-ubuntu-14.04"
+  
+  if Vagrant.has_plugin?("vagrant-proxyconf")
+	  config.apt_proxy.http = "http://172.20.20.1:3142"
+	  config.apt_proxy.https = "DIRECT"
+  end
+
+  config.vm.define "graphite01" do |graphite01|
+	  graphite01.vm.provision "shell", inline: $graphite
+	  graphite01.vm.hostname = "graphite01"
+	  graphite01.vm.network "private_network", ip: "172.20.20.20"
+	  graphite01.vm.provider :virtualbox do |vb|
+		  vb.customize ["modifyvm", :id, "--memory", "1024"]
+		  vb.customize ["modifyvm", :id, "--cpus", "2"]
+	  end
+  end
+
+  config.vm.define "graphite02" do |graphite02|
+	  graphite02.vm.provision "shell", inline: $graphite
+	  graphite02.vm.hostname = "graphite02"
+	  graphite02.vm.network "private_network", ip: "172.20.20.21"
+	  graphite02.vm.provider :virtualbox do |vb|
+		  vb.customize ["modifyvm", :id, "--memory", "1024"]
+		  vb.customize ["modifyvm", :id, "--cpus", "2"]
+	  end
+  end
+
+  config.vm.define "ha" do |ha|
+	  ha.vm.provision "shell", inline: $ha
+	  ha.vm.hostname = "ha"
+	  ha.vm.network "private_network", ip: "172.20.20.10"
+	  # haproxy / ingest balancer
+	  ha.vm.network "forwarded_port", guest: 10001, host: 10001
+	  ha.vm.network "forwarded_port", guest: 10101, host: 10101
+	  # haproxy / forward to web
+	  ha.vm.network "forwarded_port", guest: 8080, host: 8000
+	  # haproxy stats uri
+	  ha.vm.network "forwarded_port", guest: 25001, host: 25001
+	  ha.vm.provider :virtualbox do |vb|
+	  	vb.customize ["modifyvm", :id, "--memory", "512"]
+	  end
+  end
+
+end
