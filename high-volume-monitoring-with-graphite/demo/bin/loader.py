@@ -21,7 +21,7 @@ import subprocess
 from socket import socket
 from random import randint
 
-CARBON_SERVER = '172.20.20.20'
+CARBON_SERVER = '172.20.20.10'
 CARBON_PORT = 10001
 
 delay = 20
