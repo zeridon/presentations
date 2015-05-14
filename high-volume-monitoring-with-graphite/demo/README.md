@@ -10,3 +10,13 @@ How to use
 * Install some deb caching (apt-cache-ng)
 * vagrant up
 * python bin/loader.py
+
+Some Notes
+==========
+Everything is shell
+
+There are not a lot's of checks made
+
+graphite-web is not functional (do it manually for now)
+
+Host only networking is used for some isolation
