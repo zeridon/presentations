@@ -64,4 +64,4 @@ pdfnup \
 	--suffix 'nup' \
 	${_dir}/${_base}-beamer-handouts.pdf
 
-mv ${_dir}/${_base}-beamer-handouts-nup.pdf ${_dir}/${_base}-beamer-handouts.pdf
+mv ${_dir}/${_base}-beamer-handouts-nup.pdf ${_dir}/${_base}-beamer-handouts-singlepage.pdf
