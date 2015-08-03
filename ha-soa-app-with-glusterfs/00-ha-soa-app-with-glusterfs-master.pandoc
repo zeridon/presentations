@@ -1,0 +1,81 @@
+---
+title: High Availability SOA APP with GlusterFS
+subtitle: 
+author:
+ - Vladimir Vitkov
+date: xxxx.xx.xx / XxxCon
+titlepage-note: |
+ In the world of big systems and soa the services need to be highly available and always accessible. If developers forget to implement this, ops needs to step in and feel the void. This presentation aims to show you a relatively simple way to achieve this using the clustered filesystem GlusterFS. The main accent is on organising synchronisation, replication and disaster recovery.
+...
+
+## Who am I
+ * Vladimir
+ * Sysadmin / DevOPS
+ * FOSS proponent and addopter
+ * Experimentor
+ * Relatively nice guy for a chat\*
+
+# What is SOA
+\note{
+Let's put the basis on what SOA is and why it is usefull for the world
+}
+
+## The monolith
+![the-monolith](images/the-monolith.jpg "A monolithyc Application")
+\note{
+The monolith approach is usually the first one. It is easier to construct as everything is in the same place. There is no need to account for delays, communication failures and similar. Of course it has it's drawbacks. The piece of code is huge, hard to maintain and scale. Sometimes ugly, but always hard on supporting.
+}
+
+## Microservices
+![microservices](images/microservices.png "A primer for microservices")
+\note{
+The microservices approach usually evolves from the monolith one. The big APPLICATION (yes all capital) gets split at some point into smaller more contained chunks that do few things (initially). The final incarnation is one service does one and only one thing. The benefits are easier maintenance, scaling and supporting the code. Usually this is done with a total rewrite but sometimes it is done with a state of mind as refactoring code.
+}
+
+## SOA
+![soa-elements](images/SOA-elements.png "SOA Elements")
+\note{
+SOA is mostly a pattern in software design in which the components of the system are separated from one another and communicate via a protocol (usually network one). The principles are neutral and independent of vendor, product or technology. Most often this is achieved with the help of the protocols. Most common ones are SOAP and REST. As such it is in fact microservices architecture but on a conceptual level. Currently large-scale applications are based on the SOA principles and microservices model.
+}
+
+# The Application
+\note{
+Well one of the services only
+}
+
+## What is the system
+ * Large scale Ecommerce product
+ * Quite a few services that interact
+ * Lots of users
+ * Lots of traffic
+\note{
+I am helping run a fairly complex and large application, we have quite some services, lots of interactions, lots of traffic and users and this needs to always be available and run.
+}
+
+## What is the service
+ * Brand New service
+ * Replacing custom hacks
+ * To be in service in 3 weeks
+ * After several total redesigns
+\note{
+The service i am going to tell you today was brand new. It was born in 3 weeks. Main purpose of it was to replace some custom hacks in our processess and more fluidly control access to resources. It has been totally redesigned several times. It has the core of it changed at least 3 times. And finally introduced without anyone noticing (except directly involved parties).
+}
+
+## What is the service (2)
+ * Speaks REST
+ * Stores some local data
+ * Transforms requests
+ * Pulls data from 3rd party service
+ * Is stateless
+\note{
+This service speaks rest, stores some configuration in local storage. When someone asks it the right question, respoonds after pulling some 3rd party data, applying transforms and generally humming along. The best thing: it was stateless.
+}
+
+## Wha the service is not
+ * Highly available
+ * Redundant
+ * Without central data store
+ * But needs to be
+\note{
+Unfortunately not everything is hunky-dory in the SOA land. The service was not highly available, not redundant, had no idea of central storage and generally was not ready for prime time. But it needed to be all this things. So OPS had to rescue it and give it wings.
+}
