@@ -1,0 +1,88 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$app = <<SCRIPT
+echo 'Provisioning ...'
+sudo sed -i 's,http://us.archive.ubuntu,http://bg.archive.ubuntu,g' /etc/apt/sources.list
+echo 'APT::Install-Recommends "false";' | sudo tee /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Recommends "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc python-pip curl screen
+sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
+sudo pip install --ignore-installed --quiet flask
+sudo apt-get clean
+
+sudo cp /vagrant/conf/app.conf /etc/init
+service app start
+SCRIPT
+
+$ha = <<SCRIPT
+echo 'Provisioning ...'
+sudo sed -i 's,http://us.archive.ubuntu,http://bg.archive.ubuntu,g' /etc/apt/sources.list
+echo 'APT::Install-Recommends "false";' | sudo tee /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+echo 'APT::Get::Install-Recommends "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
+sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc haproxy 
+sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
+sudo apt-get clean
+
+sudo cp /vagrant/conf/haproxy.cfg /etc/haproxy/haproxy.cfg
+echo 'ENABLED=1' | sudo tee /etc/default/haproxy
+sudo /etc/init.d/haproxy restart
+SCRIPT
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure(2) do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://atlas.hashicorp.com/search.
+  config.vm.box = "opscode-ubuntu-14.04"
+  
+  if Vagrant.has_plugin?("vagrant-proxyconf")
+	  config.apt_proxy.http = "http://172.20.20.1:3142"
+	  config.apt_proxy.https = "DIRECT"
+  end
+
+  config.vm.define "app01" do |app01|
+	  app01.vm.provision "shell", inline: $app
+	  app01.vm.hostname = "app01"
+	  app01.vm.network "private_network", ip: "172.20.20.20"
+	  app01.vm.provider :virtualbox do |vb|
+		  vb.customize ["modifyvm", :id, "--memory", "256"]
+		  vb.customize ["modifyvm", :id, "--cpus", "1"]
+	  end
+  end
+
+  config.vm.define "app02" do |app02|
+	  app02.vm.provision "shell", inline: $app
+	  app02.vm.hostname = "app02"
+	  app02.vm.network "private_network", ip: "172.20.20.21"
+	  app02.vm.provider :virtualbox do |vb|
+		  vb.customize ["modifyvm", :id, "--memory", "256"]
+		  vb.customize ["modifyvm", :id, "--cpus", "1"]
+	  end
+  end
+
+  config.vm.define "ha" do |ha|
+	  ha.vm.provision "shell", inline: $ha
+	  ha.vm.hostname = "ha"
+	  ha.vm.network "private_network", ip: "172.20.20.10"
+	  ha.vm.network "forwarded_port", guest: 25001, host: 25001
+	  ha.vm.provider :virtualbox do |vb|
+	  	vb.customize ["modifyvm", :id, "--memory", "256"]
+	  end
+  end
+
+end
