@@ -10,10 +10,33 @@ echo 'APT::Get::Install-Suggests "false";' | sudo tee -a /etc/apt/apt.conf.d/99n
 echo 'APT::Get::Install-Recommends "false";' | sudo tee -a /etc/apt/apt.conf.d/99no-recommends
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc python-pip curl screen
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc python-pip curl screen glusterfs-server glusterfs-common glusterfs-client nfs-common
 sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
 sudo pip install --ignore-installed --quiet flask
 sudo apt-get clean
+
+# now setup a gluster cluster
+if [ "x$(hostname)x" == "xapp01x" ] ; then
+  if [ ! -r /var/lib/cluster-created ] ; then
+    # form the cluster
+    sudo gluster peer probe 172.20.20.21
+  
+    # create the volume
+    # force is needed as vagrant adds only one drive by default and we are a bit lazy
+    sudo gluster volume create app replica 2 transport tcp 172.20.20.20:/data 172.20.20.21:/data force
+
+    # start volume
+    sudo gluster volume start app
+
+    # now guard against double creation
+    sudo touch /var/lib/cluster-created
+  fi
+fi
+
+# mount
+sudo mkdir -p /mnt/app-data
+sleep 5
+mount -t nfs -o _netdev,rw,noatime,nodiratime,vers=3 localhost:/app /mnt/app-data
 
 sudo cp /vagrant/conf/app.conf /etc/init
 service app restart
