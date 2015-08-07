@@ -11,14 +11,14 @@ files = [ f for f in listdir(target) if isfile(join(target,f)) ]
 def populate():
     global files, target
     files = [ f for f in listdir(target) if isfile(join(target,f)) ]
-    return 'ok'
+    return 'ok\n'
 
 @app.route('/')
 def respond():
     global files
-    return '\n'.join(files)
+    return '\n'.join(files) + '\n'
 
-@app.route('/add/<name>', methods=['POST'])
+@app.route('/add/<name>')
 def create_file(name):
     file = open(join(target,name), 'w')
     file.close()

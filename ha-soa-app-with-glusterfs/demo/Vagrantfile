@@ -16,7 +16,7 @@ sudo pip install --ignore-installed --quiet flask
 sudo apt-get clean
 
 sudo cp /vagrant/conf/app.conf /etc/init
-service app start
+service app restart
 SCRIPT
 
 $ha = <<SCRIPT
