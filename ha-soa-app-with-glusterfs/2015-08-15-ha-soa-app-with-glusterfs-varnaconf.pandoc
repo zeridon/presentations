@@ -1,0 +1,216 @@
+---
+title: High Availability SOA APP with GlusterFS
+subtitle: 
+author:
+ - Vladimir Vitkov
+date: 2015.08.15 / VarnaConf
+titlepage-note: |
+ In the world of big systems and soa the services need to be highly available and always accessible. If developers forget to implement this, ops needs to step in and feel the void. This presentation aims to show you a relatively simple way to achieve this using the clustered filesystem GlusterFS. The main accent is on organising synchronisation, replication and disaster recovery.
+...
+
+## Who am I
+ * Vladimir
+ * Sysadmin / DevOPS
+ * FOSS proponent and addopter
+ * Experimentor
+ * Relatively nice guy for a chat\*
+
+# What is SOA
+\note{
+Let's put the basis on what SOA is and why it is usefull for the world
+}
+
+## The monolith
+![the-monolith](images/the-monolith.jpg "A monolithyc Application")
+\note{
+The monolith approach is usually the first one. It is easier to construct as everything is in the same place. There is no need to account for delays, communication failures and similar. Of course it has it's drawbacks. The piece of code is huge, hard to maintain and scale. Sometimes ugly, but always hard on supporting.
+}
+
+## Microservices
+![microservices](images/microservices.png "A primer for microservices")
+\note{
+The microservices approach usually evolves from the monolith one. The big APPLICATION (yes all capital) gets split at some point into smaller more contained chunks that do few things (initially). The final incarnation is one service does one and only one thing. The benefits are easier maintenance, scaling and supporting the code. Usually this is done with a total rewrite but sometimes it is done with a state of mind as refactoring code.
+}
+
+## SOA
+![soa-elements](images/soa.png "SOA")
+\note{
+SOA is mostly a pattern in software design in which the components of the system are separated from one another and communicate via a protocol (usually network one). The principles are neutral and independent of vendor, product or technology. Most often this is achieved with the help of the protocols. Most common ones are SOAP and REST. As such it is in fact microservices architecture but on a conceptual level. Currently large-scale applications are based on the SOA principles and microservices model.
+}
+
+# The Application
+\note{
+Well one of the services only
+}
+
+## What is the system
+ * Large scale Ecommerce product
+ * Quite a few services that interact
+ * Lots of users
+ * Lots of traffic
+\note{
+I am helping run a fairly complex and large application, we have quite some services, lots of interactions, lots of traffic and users and this needs to always be available and run.
+}
+
+## What is the service
+ * Brand New service
+ * Replacing custom hacks
+ * To be in service in 3 weeks
+ * After several total redesigns
+\note{
+The service i am going to tell you today was brand new. It was born in 3 weeks. Main purpose of it was to replace some custom hacks in our processess and more fluidly control access to resources. It has been totally redesigned several times. It has the core of it changed at least 3 times. And finally introduced without anyone noticing (except directly involved parties).
+}
+
+## What is the service (2)
+ * Speaks REST
+ * Stores some local data
+ * Transforms requests
+ * Pulls data from 3rd party service
+ * Is stateless
+\note{
+This service speaks rest, stores some configuration in local storage. When someone asks it the right question, respoonds after pulling some 3rd party data, applying transforms and generally humming along. The best thing: it was stateless.
+}
+
+## Wha the service was not
+ * Highly available
+ * Redundant
+ * Without central data store
+ * But needs to be
+ * Does not know of changes
+\note{
+Unfortunately not everything is hunky-dory in the SOA land. The service was not highly available, not redundant, had no idea of central storage and generally was not ready for prime time. But it needed to be all this things. So OPS had to rescue it and give it wings.
+}
+
+# The Solution
+\note{
+Leave the devs to develop and ops to operate. But join them for a synergy.
+}
+
+## Highly Available
+ * Bring up more instances
+ * Spread them around
+ * Load balance them
+ * Monitor them for health
+ * Recover/replace them
+\note{
+To make the service more highly available do the sane thing. The service is stateless so apply the regular tricks. Add more instances/server. Put them in a load balancer (either DNS or some other like HAProxy). Of course do not forget to monitor the stuff. Use your best judgement.
+Monitoring is moot if there are no procedures to detect, recover or replace failed instances. Doing this in an automated fashion helps a lot.
+}
+
+## Redundant
+ * High Availability
+ * Monitoring
+ * Recover/replace
+\note{
+Keep that service stateless and Highly available. Redundancy is necessary for high availability anyways.
+}
+
+## No central data store
+ * Core issue
+ * Create GlusterFS cluster for replica
+ * Reconfigure app to use clustered data store
+ * Monitor it
+ * Recover/replace
+\note{
+The missing central data store become the core issue that prompted developing this approach. The application was aware only of local storage and porting it to support remote/central storage would have missed deadlines. So ops had to rescue the situation. The solution we thought of included creating a replicated GlusterFS cluster. It took care to synchronise and replicate the needed local data to all nodes. After that it was just necessary to reconfigure the application to use this local (but in reality replicated) data storage.
+As a recurring theme do not forget the monitoring. Monitor all components available and monitor them well.
+Again do not forget to automate recovery in case of troubles with the nodes.
+}
+
+## Become aware of changes
+ * App does not know about new data
+ * Build update mechanism
+ * Inotify + curl
+ * NFS is not a friend
+ * FUSE is not a friend too
+\note{
+Another problem with this approach was that the application is not monitoring local data store for changes. To solve this add a mechanism to inform it that the data store has changed and should be reread/reconsidered. Devs built a mechanism to do this and exposed it. The detect the changes on the filesystem level and trigger this mechanism. Inotify and curl fit nicelu into this. But unfortunately NFS and FUSE do not support inotify events. FUSE may support them but requires special codding in the FS to have it.
+}
+
+# How to do it
+\note{
+Show how it is built
+}
+
+## Components
+ * GlusterFS
+ * nfs-common
+ * inotify-hookable
+ * nice utils around
+\note{
+First step is to install everything necessary. This includes the GlusterFS itself, nfs client, inotify monitoring tool and any utilities you may need
+}
+
+## Create GlusterFS cluster
+ * Start gluster daemon
+ * Assemble cluster
+
+~~~~
+gluster peer probe remote.peer.host
+~~~~
+
+ * /var/lib/glusterd/peers/\*
+\note{
+Next step is to build the cluster. Building the cluster is basically probing the peers. Do the probing from one node only. No need to do it from the other nodes. Make sure your DNS works properly and can resolve the names. If you don't want to mix names/ip addressess you may have to manually edit gluster peers to use names.
+}
+
+## Create volume
+ * Create replicated volume
+
+~~~~
+gluster volume create vol1 replica 2 \
+   transport tcp peer1:/vol peer2:/vol
+~~~~
+
+\note{
+Creating the volume is a simple command. This will initialize the so called bricks that form the GlusterFS fabric. As we are aiming for redundancy and replication we create the volume with replica count 2 and add only 2 bricks. If bricks are created on the root partition you will need to use "force" option. Take some time to review the GlusterFS tunning options (Resources slide).
+}
+
+## Reconfigure
+ * mount
+
+~~~~
+mount -t nfs localhost:/vol1 /app
+~~~~
+
+ * Start the app
+
+\note{
+We chose to use local nfs mount to enable functioning of the service in a split brain/down situation. The data is replicated everywhere so it is not important from where we serve. GlusterFS has a reconciliation mechanism that can handle split brain situations. Of course chosing NFS (FUSE also won't help you) leads us to the next problem. No inotify events
+}
+
+## Update info
+ * Data added on other node
+
+~~~~
+inotify-hookable \
+  --watch-directories /vol \
+  --on-modify-command curl
+~~~~
+
+\note{
+It is important to update the applications view of the data store.
+We do this by detecting changes (to the local brick) and triggering the update cycle with curl. monitoring the local brick is necessary due to inotify events not being emitted for nfs.
+}
+
+# DEMO Time
+\note{
+In this demo we'll show you the final result. We'll play with disabling the update mechanism, so we can demonstrate that content is properly replicated but the application is not aware of it.
+}
+
+# Closing
+\note{}
+
+## Q/A?
+![qa](images/question-mark.jpg "Questions?")
+
+## Contact
+ * Demo: http://is.gd/gluster_demo
+ * Slides: http://is.gd/gluster_varnaconf
+ * mail: vvitkov@linux-bg.org
+ * GPG: A162 1211 8ACB 4CC5
+
+## Resources
+ * http://is.gd/gluster_tune
+ * http://is.gd/gluster_quickstart
+ * http://flask.pocoo.org/
