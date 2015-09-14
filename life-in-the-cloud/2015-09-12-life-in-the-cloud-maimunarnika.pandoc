@@ -211,7 +211,7 @@ SaaS - Приложения под наем.
  * Без архиви
  * Проста билд машина (лесно)
 
-## Трябва ми бекъпа на dev12
+## Искам статистики за 1 година
  * Статистика от 10TB логове
  * За вчера
  * Elastic Map Reduce
@@ -222,7 +222,7 @@ SaaS - Приложения под наем.
  * Once upon a time there was AWS eu-west-1a
  * It is no more
  * Sleep ... for someone else
- * Let the pain flow trough me
+ * 12-24 hours for recovery
 
 ## AWS Power failure
  * Инцидент
@@ -248,8 +248,7 @@ SaaS - Приложения под наем.
 ## Parse 12 mil CV
  * Комерсиален Продукт
  * Perl/XML/C
- * Heavy as shit
- * Пусни повече ... Затлачване
+ * Неоптимизирано, неконсистентно
  * Автоматизирано скалиране
  * Profit
 
@@ -280,7 +279,6 @@ SaaS - Приложения под наем.
 
 ## Благодарности
  * AWS
- * Nik
  * Линукс За Българи - http://www.linux-bg.org
  * Questers - https://www.questers.com
  * Някой който със сигурност съм забравил
