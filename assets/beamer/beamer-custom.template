@@ -228,6 +228,10 @@ $if(date)$
   \date{$date$}
 $endif$
 
+% \tightlist definition
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
 \begin{document}
 $if(title)$
 \frame{
