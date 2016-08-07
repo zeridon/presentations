@@ -1,0 +1,10 @@
+FROM frolvlad/alpine-python3:latest
+MAINTAINER Vladimir Vitkov <vvitkov@linux-bg.org>
+
+RUN mkdir -p /data
+ADD ./blue/index.html /data
+ADD ./common /data
+
+EXPOSE 8000
+
+CMD [ "/data/run.sh" ]

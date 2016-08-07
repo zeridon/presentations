@@ -1,0 +1,65 @@
+global
+	stats timeout 30s
+	maxconn {{or (key "service/haproxy/maxconn") 1024}}
+	debug
+	# Recommended SSL ciphers as per https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
+	ssl-default-bind-options no-sslv3
+	ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
+	ssl-default-server-options no-sslv3
+	ssl-default-server-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
+	tune.ssl.default-dh-param 2048
+
+defaults
+	mode http
+	option httplog
+	option dontlognull
+	option forwardfor
+	option http-server-close
+	option tcp-smart-accept
+	option tcp-smart-connect
+	option splice-auto
+	option abortonclose{{range ls "service/haproxy/timeouts"}}
+	timeout {{.Key}} {{.Value}}{{else}}
+	timeout connect 5000
+	timeout client  50000
+	timeout server  50000{{end}}
+
+listen stats 
+	bind *:1936
+	stats enable
+	stats uri /sts
+	stats hide-version
+	stats auth someuser:password
+
+### HTTP(S) frontend ###
+frontend http-in
+	bind *:80
+	{{ if env "HAPROXY_USESSL" }}bind *:443 ssl crt /haproxy/ssl.crt{{ end }}
+	reqadd X-Forwarded-Proto:\ http if !{ ssl_fc }
+	reqadd X-Forwarded-Proto:\ https if { ssl_fc }
+	{{ if eq (env "HAPROXY_USESSL") "force" }}
+	# Redirect all non-secure connections to HTTPS
+	redirect scheme https if !{ ssl_fc }{{ end }}
+
+	# Generated automatically by consul-template
+	# blue if bgdemo and blue in service/laptopbg/color
+	# green if bgdemo and green in service/laptopbg/color
+	# else holding
+	use_backend bgdemo_{{with $color:=key "service/bgdemo/color"}}{{$color}}{{else}}holding{{end}}
+	default_backend bgdemo_holding
+
+### failsafe ###
+backend bgdemo_holding
+	server sink 127.0.0.1:56569
+
+listen bgdemo_green
+	bind *:18000
+	balance roundrobin{{range $instanceindex,$srvs:=service "bgdemo"}}{{if .Tags | contains "green"}}
+	server instance-{{$instanceindex}}-{{.Node}}-green {{.Address}}:{{.Port}} check{{end}}{{end}}
+	server sink 127.0.0.1:56569 backup
+
+listen bgdemo_blue
+	bind *:28000
+	balance roundrobin{{range $instanceindex,$srvs:=service "bgdemo"}}{{if .Tags | contains "blue"}}
+	server instance-{{$instanceindex}}-{{.Node}}-blue {{.Address}}:{{.Port}} check{{end}}{{end}}
+	server sink 127.0.0.1:56569 backup
