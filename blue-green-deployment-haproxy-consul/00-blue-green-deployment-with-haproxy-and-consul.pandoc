@@ -3,12 +3,12 @@ title: Blue/Green Deployment with HAProxy and Consul
 subtitle: Автоматизирано въвеждане в експлоатация на софтуер
 author:
  - Владимир Витков
-date: хххх.хх.хх / BurgasConf
+date: хххх.хх.хх / XXX
 titlepage-note: |
  В процеса на разработка на софтуер възниква необходимост за бързо и лесно въвеждане в експлоатация на нови версии. Това трябва да се случи плавно, автоматизирано, и да подлежи на лесно връщане на старата версия. Терминът който е най-популярен е Blue/Green Deployment.
 
  Днес ще ви покажа един от начините по който това може да се случи.
-...
+---
 
 ## Кой е пред вас
  * Владимир
@@ -67,13 +67,116 @@ titlepage-note: |
 	Просто приложение което да демонстрира идеята. Забелязвате ли проблем?
 }
 
+# The Solution
+\note{}
+
 ## Архитектура
 ![app-architecture](images/bgd-architecture.png "Архитектура")
 \note{
 	Решението е базирано на haproxy което излага на външният свят няколко порта (по един за всяка група, един за текущо активната версия и един за управление). Имаме key-value сървър в който registrator приложението описва промените в сървърите ни. haproxy контейнера автоматично регенерира собствената си конфигурация в зависимост от вървящите контейнери. И може ръчно да сменим текущо активната група контейнери.
 }
 
-# The Solution
+## Компоненти
+ * docker
+ * haproxy
+ * consul
+ * registrator
+
+\note{
+	Необходимите ни компоненти са:
+	 * docker - където ще си работят нещата
+	 * haproxy - ефективен loadbalancer
+	 * consul - key/value store
+	 * registrator - обновява информацията за работещите контейнери в докер
+}
+
+## Consul
+ * Контейнер предоставящ key/value услуга
+ * Съхранява описанието на приложението ни
+ * Може да се клъстеризира
+\note{
+	Consul е key/value storage софтуер. Използваме го за да съхраняваме информация за приложението ни. Може да се съхранява произволна информация. Има и възможност за проверки на достъпността.
+}
+
+## Consul - starting
+~~~~~
+docker run --detach --restart=always \
+	--hostname consul-master --name consul-master \
+	gliderlabs/consul-server [-bootstrap]
+~~~~~
+\note{}
+
+## Registrator
+ * Динамично обновява Consul
+ * Попълва параметри за контейнери
+\note{}
+
+## Registrator - starting
+~~~~~
+docker run --detach --restart=always \
+	--name registrator --hostname registrator \
+	--net=host \
+	--volume=/var/run/docker.sock:/tmp/docker.sock \
+	gliderlabs/registrator:latest consul://localhost:8500
+~~~~~
+\note{}
+
+## haproxy
+ * контейнер базиран на alpine linux
+ * haproxy
+ * consul-template
+ * nginx - holding pages
+\note{
+	Целта на този контейнер е да бъде load-balancer пред нашето приложение и по автоматичен начин да може да сменя активните групи. Конфигурацията се регенерира автоматично при промяна на активните контейнери или ръчно прехвърляне. Допълнително имаме nginx който сервира holding страници (ако сме объркали нещо няма да е грозно).
+}
+
+## haproxy - entrypoint
+~~~~~
+frontend http-in
+	bind *:80
+	# Generated automatically by consul-template
+	# blue if app-web and blue in service/app/color
+	# green if app-web and green in service/app/color
+	# else holding
+	use_backend app_{{with $cl:=key "service/app/color"}}{{$cl}}{{else}}holding{{end}}
+	default_backend app_holding
+~~~~~
+\note{
+	Основна входна точка. В зависимост от конкретната избрана група трафика се насочва към нея. Ако по случайност няма избрана група всичко се насочва към holding страница. Ако няма активни сървъри в избраната група пак отиваме към холдинг страница.
+}
+
+## haproxy - holding
+~~~~~
+backend laptopbg-web_holding
+	server sink 127.0.0.1:59599
+~~~~~
+\note{
+	Елементарна холдинг страница (nginx пренасочващ всичко към локално копие със 503)
+}
+
+## haproxy - color
+~~~~~
+listen web_green
+bind *:18000
+ balance roundrobin
+ {{range $i,$s:=service "web"}}
+  {{if .Tags | contains "green"}}
+   server {{$i}}{{.Node}}green {{.Address}}:{{.Port}}
+  {{end}}
+ {{end}}
+ server sink 127.0.0.1:56569 backup
+~~~~~
+\note{
+	Пример за една от групите. За всички инстанции които дефинират че предоставят усуга web, ако в таговете им има цвят (зелен) биват добавени. Имаме и допълнително подсигуряване че ако нямаме контейнери в групата ще сервираме холдинг страница.
+}
+
+## haproxy - starting
+~~~~~
+docker run --detach --restart=always \
+	--env='CONSUL_CONNECT=172.17.42.1:8500' \
+	--hostname lb-prod --name lb-prod \
+	zeridon/haproxy-consul
+~~~~~
 \note{}
 
 # The Demo
