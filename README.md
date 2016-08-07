@@ -35,6 +35,7 @@ In order for all this to work you will need the following tools:
 
 * Pandoc
 * latex-beamer
+* cm-super - for scalable fonts
 * pdfjam
 
 Either compile or install from packages
