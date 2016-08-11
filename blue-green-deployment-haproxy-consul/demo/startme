@@ -1,0 +1,37 @@
+docker run -t -i --rm \
+  --hostname consul \
+  --name consul \
+  -p 8500:8500 \
+  gliderlabs/consul-server -bootstrap -advertise x.x.x.x
+
+docker run -t -i --rm \
+  --name registrator \
+  --hostname registrator \
+  --net=host \
+  --volume=/var/run/docker.sock:/tmp/docker.sock \
+  gliderlabs/registrator:latest consul://localhost:8500
+
+docker run -t -i --rm \
+  --env='CONSUL_CONNECT=172.17.0.2:8500' \
+  --hostname lb \
+  --name lb \
+  -p 80:80 \
+  -p 18000:18000 \
+  -p 28000:28000 \
+  bg-demo/haproxy:20160619
+
+docker run --rm -t -i \
+  --hostname bgd-blue.0 \
+  --name bgd-blue.0 \
+  --env 'SERVICE_NAME=bgdemo' \
+  --env 'SERVICE_TAGS=blue' \
+  -p 8000 \
+  bg-demo/app:blue
+
+docker run --rm -t -i \
+  --hostname bgd-green.0 \
+  --name bgd-green.0 \
+  --env 'SERVICE_NAME=bgdemo' \
+  --env 'SERVICE_TAGS=green' \
+  -p 8000 \
+  bg-demo/app:green
