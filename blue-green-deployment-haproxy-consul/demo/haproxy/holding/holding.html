@@ -1,1 +1,62 @@
-holding page
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Blue-Green Deployment demo app</title>
+	<link href="/static/css/normalize.css" rel="stylesheet">
+	<link href="/static/css/main.css" rel="stylesheet">
+	<link href="/static/font/geomainst/webfonts.css" rel="stylesheet">
+<script>
+(function(){
+	function addFont() {
+		var style = document.createElement('style');
+		style.rel = 'stylesheet';
+		document.head.appendChild(style);
+		style.textContent = localStorage.sourceSansPro;
+		}
+
+		try {
+		if (localStorage.sourceSansPro) {
+			// The font is in localStorage, we can load it directly
+			addFont();
+		} else {
+			// We have to first load the font file asynchronously
+			var request = new XMLHttpRequest();
+			request.open('GET', '/static/font/geomainst/webfonts.css', true);
+
+			request.onload = function() {
+			if (request.status >= 200 && request.status < 400) {
+			// We save the file in localStorage
+			localStorage.sourceSansPro = request.responseText;
+
+			// ... and load the font
+			addFont();
+		}
+	}
+
+	request.send();
+	}
+	} catch(ex) {
+	// maybe load the font synchronously for woff-capable browsers
+	// to avoid blinking on every request when localStorage is not available
+	}
+	}());
+</script>
+
+</head>
+<body>
+<div class="main">
+	<div class="header-top"><div class="header-nav">&nbsp;</div></div>
+	<div class="header"><h1><a href="/">Blue/Green Deployment Demo app</a></h1></div>
+	<div class="content">
+		<div class="one-third">&nbsp;</div>
+		<div class="one-third">
+			<a href="#"><div class="d3"></div></a>
+			<span class="grey">&nbsp;</span>
+			<h2>Something is wrong</h2>
+		</div>
+		<div class="one-third">&nbsp;</div>
+	</div>
+	<div class="footer"><a href="https://www.getoto.net/zeridon">&#169; 2016 Zeridon</a></div>
+</div>
+</body>
+</html>
