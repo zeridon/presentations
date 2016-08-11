@@ -18,6 +18,14 @@ titlepage-note: |
  * Относително приятен човек за разговор\*
 \note{}
 
+## Census
+ * Програмисти
+ * Администратори
+ * Performance
+ * Agile
+ * QA
+\note{}
+
 # Agile and DevOps
 \note{}
 
@@ -147,7 +155,7 @@ frontend http-in
 
 ## haproxy - holding
 ~~~~~
-backend laptopbg-web_holding
+backend web_holding
 	server sink 127.0.0.1:59599
 ~~~~~
 \note{
