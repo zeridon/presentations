@@ -7,8 +7,8 @@ RUN apk update && \
     apk add bash haproxy ca-certificates zip nginx && \
     rm -rf /var/cache/apk/*
 
-#ADD https://releases.hashicorp.com/consul-template/${CONSUL_TEMPLATE_VERSION}/consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip /
-ADD consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip /
+ADD https://releases.hashicorp.com/consul-template/${CONSUL_TEMPLATE_VERSION}/consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip /
+#ADD consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip /
 
 RUN unzip /consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip  && \
     mv /consul-template /usr/local/bin/consul-template && \
