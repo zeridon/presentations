@@ -1,6 +1,6 @@
 High Availability SOA APP with GlusterFS
 ========================================
-In the world of big systems and soa the services need to be highly available and always accessible. If developers forget to implement this, ops needs to step in and feel the void. This presentation aims to show you a relatively simple way to achieve this using the clustered filesystem GlusterFS. The main accent is on organising synchronisation, replication and disaster recovery.
+In the world of big systems and soa the services need to be highly available and always accessible. If developers forget to implement this, ops needs to step in and fill the void. This presentation aims to show you a relatively simple way to achieve this using the clustered filesystem GlusterFS. The main accent is on organising synchronisation, replication and disaster recovery.
 
 Author: Vladimir Vitkov
 

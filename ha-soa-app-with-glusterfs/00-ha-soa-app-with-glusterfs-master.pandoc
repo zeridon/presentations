@@ -17,7 +17,7 @@ titlepage-note: |
 
 # What is SOA
 \note{
-Let's put the basis on what SOA is and why it is usefull for the world
+Let's put the basis on what SOA is and why it is usefull for the world. Service Oriented Architecture is a way of thinking and coincidentaly separates the application into multiple services (not necessarily micro ones).
 }
 
 ## The monolith
@@ -26,10 +26,10 @@ Let's put the basis on what SOA is and why it is usefull for the world
 The monolith approach is usually the first one. It is easier to construct as everything is in the same place. There is no need to account for delays, communication failures and similar. Of course it has it's drawbacks. The piece of code is huge, hard to maintain and scale. Sometimes ugly, but always hard on supporting.
 }
 
-## Microservices
-![microservices](images/microservices.png "A primer for microservices")
+## Services
+![services](images/microservices.png "A primer for services")
 \note{
-The microservices approach usually evolves from the monolith one. The big APPLICATION (yes all capital) gets split at some point into smaller more contained chunks that do few things (initially). The final incarnation is one service does one and only one thing. The benefits are easier maintenance, scaling and supporting the code. Usually this is done with a total rewrite but sometimes it is done with a state of mind as refactoring code.
+The services approach usually evolves from the monolith one. The big APPLICATION (yes all capital) gets split at some point into smaller more contained chunks that do few things (initially). The final incarnation is one service does one and only one thing. The benefits are easier maintenance, scaling and supporting the code. Usually this is done with a total rewrite but sometimes it is done with a state of mind as refactoring code.
 }
 
 ## SOA
@@ -49,7 +49,7 @@ Well one of the services only
  * Lots of users
  * Lots of traffic
 \note{
-I am helping run a fairly complex and large application, we have quite some services, lots of interactions, lots of traffic and users and this needs to always be available and run.
+I am running a fairly complex and large application, we have quite some services, lots of interactions, lots of traffic and users and this needs to always be available and run.
 }
 
 ## What is the service
@@ -208,7 +208,7 @@ In this demo we'll show you the final result. We'll play with disabling the upda
  * Demo: http://is.gd/gluster_demo
  * Slides: http://is.gd/gluster_varnaconf
  * mail: vvitkov@linux-bg.org
- * GPG: A162 1211 8ACB 4CC5
+ * GPG: A162 1211  8ACB 4CC5
 
 ## Resources
  * http://is.gd/gluster_tune

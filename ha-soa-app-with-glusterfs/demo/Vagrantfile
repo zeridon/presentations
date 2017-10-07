@@ -14,16 +14,18 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y vim mc python-pip curl sc
 sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
 sudo pip install --ignore-installed --quiet flask
 sudo apt-get clean
+SCRIPT
 
+$gluster = <<SCRIPT
 # now setup a gluster cluster
-if [ "x$(hostname)x" == "xapp01x" ] ; then
+if [ "x$(hostname)x" == "xapp02x" ] ; then
   if [ ! -r /var/lib/cluster-created ] ; then
     # form the cluster
-    sudo gluster peer probe 172.20.20.21
+    sudo gluster peer probe 172.20.20.20
   
     # create the volume
     # force is needed as vagrant adds only one drive by default and we are a bit lazy
-    sudo gluster volume create app replica 2 transport tcp 172.20.20.20:/data 172.20.20.21:/data force
+    sudo gluster volume create app replica 2 transport tcp 172.20.20.20:/data/vol 172.20.20.21:/data/vol
 
     # start volume
     sudo gluster volume start app
@@ -34,7 +36,7 @@ if [ "x$(hostname)x" == "xapp01x" ] ; then
 fi
 
 sudo cp /vagrant/conf/app.conf /etc/init
-service app restart
+sudo service app restart
 SCRIPT
 
 $ha = <<SCRIPT
@@ -66,7 +68,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "opscode-ubuntu-14.04"
+  config.vm.box = "bento/ubuntu-14.04"
   
   if Vagrant.has_plugin?("vagrant-proxyconf")
 	  config.apt_proxy.http = "http://172.20.20.1:3142"
@@ -77,21 +79,38 @@ Vagrant.configure(2) do |config|
 	  app01.vm.provision "shell", inline: $app
 	  app01.vm.hostname = "app01"
 	  app01.vm.network "private_network", ip: "172.20.20.20"
+    # Get disk path
+    second_disk = './app01-gluster.vdi'
+
 	  app01.vm.provider :virtualbox do |vb|
-		  vb.customize ["modifyvm", :id, "--memory", "256"]
-		  vb.customize ["modifyvm", :id, "--cpus", "1"]
-	  end
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      # Create and attach disk
+      unless File.exist?(second_disk)
+        vb.customize ['createhd', '--filename', second_disk, '--format', 'VDI', '--size', 1 * 1024]
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', second_disk]
+    end
   end
 
   config.vm.define "app02" do |app02|
 	  app02.vm.provision "shell", inline: $app
 	  app02.vm.hostname = "app02"
 	  app02.vm.network "private_network", ip: "172.20.20.21"
+    # Get disk path
+    second_disk = './app02-gluster.vdi'
+
 	  app02.vm.provider :virtualbox do |vb|
 		  vb.customize ["modifyvm", :id, "--memory", "256"]
 		  vb.customize ["modifyvm", :id, "--cpus", "1"]
+      # Create and attach disk
+      unless File.exist?(second_disk)
+        vb.customize ['createhd', '--filename', second_disk, '--format', 'VDI', '--size', 1 * 1024]
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', second_disk]
 	  end
   end
+
 
   config.vm.define "ha" do |ha|
 	  ha.vm.provision "shell", inline: $ha
@@ -102,4 +121,27 @@ Vagrant.configure(2) do |config|
 	  	vb.customize ["modifyvm", :id, "--memory", "256"]
 	  end
   end
+
+  config.vm.define "badapp01" do |badapp01|
+	  badapp01.vm.provision "shell", inline: $app
+	  badapp01.vm.hostname = "badapp01"
+	  badapp01.vm.network "private_network", ip: "172.20.20.30"
+
+	  badapp01.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+    end
+  end
+
+  config.vm.define "badapp02" do |badapp02|
+	  badapp02.vm.provision "shell", inline: $app
+	  badapp02.vm.hostname = "badapp02"
+	  badapp02.vm.network "private_network", ip: "172.20.20.31"
+
+	  badapp02.vm.provider :virtualbox do |vb|
+		  vb.customize ["modifyvm", :id, "--memory", "256"]
+		  vb.customize ["modifyvm", :id, "--cpus", "1"]
+	  end
+  end
+
 end
