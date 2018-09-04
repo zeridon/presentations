@@ -1,0 +1,60 @@
+{
+	"_comment": "base image for Blue/Green deployments with lxd",
+	"variables": {
+		"ubuntu_version": "18.04",
+		"ubuntu_codename": "bionic",
+		"version": "0.5.0",
+		"scripts_dir": "scripts",
+		"config_dir": "config"
+	},
+
+	"builders": [
+		{
+			"type": "lxd",
+			"name": "lxd-build-ubuntu-{{ user `ubuntu_codename` }}-bgdemo",
+			"image": "ubuntu:{{ user `ubuntu_version` }}",
+			"output_image": "ubuntu-{{ user `ubuntu_version` }}-bgdemo-{{ user `version`}}",
+			"publish_properties": {
+				"description": "Base image (c) 2018 Nebosystems, Vladimir Vitkov",
+				"version": "{{ user `ubuntu_version` }}",
+				"aliases": "{{ user `ubuntu_version` }}, {{ user `ubuntu_codename` }}",
+				"os": "ubuntu",
+				"release": "{{ user `ubuntu_codename` }}",
+				"serial": "{{timestamp}}"
+			}
+		}
+	],
+
+	"provisioners": [
+		{
+			"type": "shell",
+			"inline": [
+				"mkdir -p /ops/{{user `scripts_dir`}}",
+				"chmod a+w /ops/{{user `scripts_dir`}}",
+				"mkdir -p /ops/{{user `config_dir`}}",
+				"chmod a+w /ops/{{user `config_dir`}}"
+			]
+		},
+		{
+			"type": "file",
+			"source": "{{user `scripts_dir`}}/.",
+			"destination": "/ops/{{user `scripts_dir`}}"
+		},
+		{
+			"type": "file",
+			"source": "{{user `config_dir`}}/.",
+			"destination": "/ops/{{user `config_dir`}}"
+		},
+		{
+			"type": "shell",
+			"inline": [
+				"chmod +x /ops/{{user `scripts_dir`}}/*",
+				"bash /ops/{{user `scripts_dir`}}/clean-canonical-fat.sh",
+				"bash /ops/{{user `scripts_dir`}}/prepare.sh",
+				"bash /ops/{{user `scripts_dir`}}/revert-to-ifupdown.sh",
+				"bash /ops/{{user `scripts_dir`}}/final-cleanup.sh"
+			]
+		}
+	]
+}
+

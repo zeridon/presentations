@@ -1,0 +1,9 @@
+# network config
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# eth1
+auto eth0
+iface eth0 inet dhcp
