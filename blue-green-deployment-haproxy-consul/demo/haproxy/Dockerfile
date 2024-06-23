@@ -1,4 +1,4 @@
-FROM alpine:3.19
+FROM alpine:3.20
 MAINTAINER Vladimir Vitkov <vvitkov@linux-bg.org>
 
 ENV CONSUL_TEMPLATE_VERSION=0.14.0
